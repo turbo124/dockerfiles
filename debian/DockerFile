@@ -1,0 +1,80 @@
+# Stage 1: Build the application
+FROM debian:bookworm-slim as base
+
+LABEL maintainer="David Bomba <turbo124@gmail.com>"
+
+WORKDIR /app
+
+# Fetch and extract Invoice Ninja
+ARG INVOICENINJA_VERSION
+
+RUN apt-get update && apt-get install -y curl unzip
+
+RUN curl -L https://github.com/invoiceninja/invoiceninja/releases/download/v${INVOICENINJA_VERSION}/react-invoiceninja.tar -o /tmp/ninja.tar 
+
+# Extract Invoice Ninja
+RUN mkdir -p /var/www \
+    && tar -xvf /tmp/ninja.tar -C /var/www \
+    && mkdir -p /var/www/app/public/logo /var/www/app/storage
+
+ARG PHP_VERSION=8.2
+
+# Install PHP and other dependencies
+RUN apt-get update && apt-get install -y \
+    php${PHP_VERSION} \
+    php${PHP_VERSION}-fpm \
+    php${PHP_VERSION}-gd \
+    php${PHP_VERSION}-bcmath \
+    php${PHP_VERSION}-ctype \
+    php${PHP_VERSION}-mbstring \
+    php${PHP_VERSION}-common \
+    php${PHP_VERSION}-tokenizer \
+    php${PHP_VERSION}-xml \
+    php${PHP_VERSION}-curl \
+    php${PHP_VERSION}-zip \
+    php${PHP_VERSION}-gmp \
+    php${PHP_VERSION}-iconv \
+    php${PHP_VERSION}-mysqli \
+    php${PHP_VERSION}-soap \
+    php${PHP_VERSION}-imagick \
+    php#{PHP_VERSION}-opcache \
+    nginx \
+    supervisor \
+    curl \
+    bash \
+    git \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libmagickwand-dev \
+    libxml2-dev \
+    libzip-dev \
+    libonig-dev \
+    libgmp-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Nginx configuration file
+COPY nginx/default.conf /etc/nginx/sites-available/default
+
+# Enable Nginx site
+RUN rm -f /etc/nginx/sites-enabled/default \
+    && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Copy Supervisor configuration file
+COPY supervisord.conf /etc/supervisor/supervisord.conf
+
+# Copy index file
+RUN cp /var/www/app/ui/dist/index.html /var/www/app/resources/views/react/index.blade.php
+
+# Set working directory
+WORKDIR /var/www
+
+# Change current user to www-data
+RUN chown -R www-data:www-data /var/www
+
+# Expose port 80
+EXPOSE 80
+
+# Start Supervisor to manage Nginx and PHP-FPM
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
