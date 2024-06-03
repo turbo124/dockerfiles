@@ -15,7 +15,11 @@ RUN curl -L https://github.com/invoiceninja/invoiceninja/releases/download/v${IN
 # Extract Invoice Ninja
 RUN mkdir -p /var/www/app \
     && tar -xvf /tmp/ninja.tar -C /var/www/app \
-    && mkdir -p /var/www/app/public/logo /var/www/app/storage
+    && mkdir -p /var/www/app/public/logo /var/www/app/storage \
+    && mkdir -p /var/www/storage/logs \
+    && mkdir -p /var/www/storage/framework \
+    && mkdir -p /var/www/storage/cache \
+    && mkdir -p /var/www/bootstrap/cache
 
 ARG PHP_VERSION=8.2
 
@@ -43,6 +47,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     bash \
     git \
+    cron \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -92,14 +97,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Nginx configuration file
-COPY nginx/default.conf /etc/nginx/sites-available/default
+COPY config/nginx/default.conf /etc/nginx/sites-available/default
+
+# Configure Cron
+RUN echo "* * * * * www-data cd /var/www/app && php artisan schedule:run >> /dev/null 2>&1" >> /etc/crontab
 
 # Enable Nginx site
 RUN rm -f /etc/nginx/sites-enabled/default \
     && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Copy Supervisor configuration file
-COPY supervisord.conf /etc/supervisor/supervisord.conf
+COPY config/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 
 # Copy index file
 RUN cp /var/www/app/ui/dist/index.html /var/www/app/resources/views/react/index.blade.php
@@ -114,7 +122,7 @@ RUN chown -R www-data:www-data /var/www
 EXPOSE 80
 WORKDIR /var/www/app
 
-COPY debian/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY config/entrypoint/entrypoint.sh /usr/local/bin/entrypoint.sh
 # Set the entrypoint script as executable
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

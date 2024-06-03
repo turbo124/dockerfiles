@@ -34,9 +34,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-5-${{ hashFiles('alpine/5/cache_buster') }}-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-5-${{ hashFiles('config/cache_buster') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-5-${{ hashFiles('alpine/5/cache_buster') }}-
+            ${{ runner.os }}-buildx-5-${{ hashFiles('config/cache_buster') }}-
 
       - name: Build
         id: docker_build

@@ -1,4 +1,10 @@
 #!/bin/sh
+
+in_error() {
+    in_log ERROR "$@" >&2
+    exit 1
+}
+
 php artisan optimize
 
 # Check if DB works, if not crash the app.

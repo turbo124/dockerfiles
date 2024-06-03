@@ -48,9 +48,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ steps.prep.outputs.major }}-${{ hashFiles('alpine/${{ steps.prep.outputs.major }}/cache_buster') }}-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ steps.prep.outputs.major }}-${{ hashFiles('config/cache_buster') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ steps.prep.outputs.major }}-${{ hashFiles('alpine/${{ steps.prep.outputs.major }}/cache_buster') }}-
+            ${{ runner.os }}-buildx-${{ steps.prep.outputs.major }}-${{ hashFiles('config/cache_buster') }}-
 
       - name: Login to DockerHub
         if: github.event_name != 'pull_request'
