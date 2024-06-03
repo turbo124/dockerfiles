@@ -19,7 +19,8 @@ RUN mkdir -p /var/www/app \
     && mkdir -p /var/www/storage/logs \
     && mkdir -p /var/www/storage/framework \
     && mkdir -p /var/www/storage/cache \
-    && mkdir -p /var/www/bootstrap/cache
+    && mkdir -p /var/www/bootstrap/cache \
+    && mkdir -p /var/www/public/storage
 
 ARG PHP_VERSION=8.2
 
@@ -91,6 +92,7 @@ RUN apt-get update && apt-get install -y \
     libxss1 \
     libxtst6 \
     lsb-release \
+    adduser \
     wget \
     xdg-utils \
     && apt-get clean \
@@ -115,8 +117,14 @@ RUN cp /var/www/app/ui/dist/index.html /var/www/app/resources/views/react/index.
 # Set working directory
 WORKDIR /var/www
 
+RUN addgroup --gid 1000 invoiceninja_group
+RUN adduser --disabled-password --gecos "" --force-badname --ingroup 1000 invoiceninja_user 
+USER invoiceninja_user
+
 # Change current user to www-data
-RUN chown -R www-data:www-data /var/www
+RUN chown -R www-data:www-data /var/www/app \
+    && chmod -R 755 /var/www/app \
+    && chmod -R 775 /var/www/app/storage /var/www/app/public
 
 # Expose port 80
 EXPOSE 80
