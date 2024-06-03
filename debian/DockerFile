@@ -13,8 +13,8 @@ RUN apt-get update && apt-get install -y curl unzip
 RUN curl -L https://github.com/invoiceninja/invoiceninja/releases/download/v${INVOICENINJA_VERSION}/react-invoiceninja.tar -o /tmp/ninja.tar 
 
 # Extract Invoice Ninja
-RUN mkdir -p /var/www \
-    && tar -xvf /tmp/ninja.tar -C /var/www \
+RUN mkdir -p /var/www/app \
+    && tar -xvf /tmp/ninja.tar -C /var/www/app \
     && mkdir -p /var/www/app/public/logo /var/www/app/storage
 
 ARG PHP_VERSION=8.2
